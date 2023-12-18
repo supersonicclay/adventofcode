@@ -37,10 +37,7 @@ function go(grid, r, c, dir, energized) {
         return;
     }
     dirsTravelled.add(dir);
-    const thing = grid[r][c];
     const newDirs = paths[grid[r][c]](dir);
-    // console.log(`THING: ${thing}`);
-    // console.log(`New dirs: ${newDirs}`);
     for (const newDir of newDirs) {
         go(grid, r+dirs[newDir][0], c+dirs[newDir][1], newDir, energized);
     }
@@ -76,4 +73,4 @@ function main(file) {
 
 main('part1example.txt');
 console.log('expected 51');
-main('part1exercise.txt'); //
+main('part1exercise.txt'); // 7154
