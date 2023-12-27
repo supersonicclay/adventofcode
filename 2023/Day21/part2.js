@@ -1,3 +1,4 @@
+const blessed = require('blessed');
 
 function sum(x) {
     return x.reduce((a,b)=>a+b, 0);
@@ -43,6 +44,25 @@ function visit(grid, pos, visited, steps, maxSteps) {
     }
 }
 
+function printGrid(grid, visited, step) {
+    const lines = [];
+    for (let r=0; r<grid.length; r++) {
+        const line = grid[r].map((cell, c) => {
+            const s = p2s([r,c]);
+            if (visited[step].has(s)) {
+                return '{bold}O{/bold}';
+            } else if (step > 0 && visited[step-1].has(s)) {
+                return 'o';
+            }
+            return cell;
+        }).join('');
+        lines.push(line);
+    }
+    const gridString = lines.join('\n');
+
+    return `${gridString}\n${visited[step].size}@${step} steps`
+}
+
 function main(file, maxSteps) {
     let result = 0;
     const input = require('fs').readFileSync(file, 'utf-8');
@@ -61,15 +81,57 @@ function main(file, maxSteps) {
     visit(grid, startCoordinate, visited, 0, maxSteps)
     result = visited[maxSteps].size;
 
-    // for (let r=0; r<grid.length; r++) {
-    //     const line = grid[r].map((cell, c) => visited[maxSteps].has(p2s([r,c])) ? 'O' : cell).join('');
-    //     console.log(line);
-    // }
+
+    var screen = blessed.screen({
+        smartCSR: true
+    });
+
+    var box = blessed.box({
+        // top: 'center',
+        // left: 'center',
+        width: '100%',
+        height: '100%',
+        content: '',
+        tags: true,
+        border: {
+            type: 'line'
+        },
+        style: {
+            fg: 'white',
+            // bg: 'magenta',
+            border: {
+                fg: '#f0f0f0'
+            },
+        }
+    });
+
+    let step = 0;
+    // Quit on Escape, q, or Control-C.
+    screen.key(['right'], function(ch, key) {
+        step = (step + 1) % (maxSteps+1);
+        box.setContent(printGrid(grid, visited, step));
+        screen.render();
+    });
+
+    screen.key(['left'], function(ch, key) {
+        step = (step + maxSteps) % (maxSteps+1);
+        box.setContent(printGrid(grid, visited, step));
+        screen.render();
+    });
+
+    // Quit on Escape, q, or Control-C.
+    screen.key(['escape', 'q', 'C-c'], function(ch, key) {
+        return process.exit(0);
+    });
+
+    // Append our box to the screen.
+    screen.append(box);
+    screen.render();
 
     console.log(result);
 }
-main('part1example.txt', 6);
-console.log('expected 16');
+// main('part1example.txt', 6);
+// console.log('expected 16');
 main('part1example.txt', 10);
 console.log('expected 50');
 // main('part1example.txt', 5000);
