@@ -1,7 +1,5 @@
 #!/bin/sh
 
-
-rm -rf Day2
 rm -rf Day3
 rm -rf Day4
 rm -rf Day5
@@ -26,27 +24,26 @@ rm -rf Day23
 rm -rf Day24
 rm -rf Day25
 
-cp -r Template Day2
-cp -r Template Day3
-cp -r Template Day4
-cp -r Template Day5
-cp -r Template Day6
-cp -r Template Day7
-cp -r Template Day8
-cp -r Template Day9
-cp -r Template Day10
-cp -r Template Day11
-cp -r Template Day12
-cp -r Template Day13
-cp -r Template Day14
-cp -r Template Day15
-cp -r Template Day16
-cp -r Template Day17
-cp -r Template Day18
-cp -r Template Day19
-cp -r Template Day20
-cp -r Template Day21
-cp -r Template Day22
-cp -r Template Day23
-cp -r Template Day24
-cp -r Template Day25
+cp -r template day3
+cp -r template day4
+cp -r template day5
+cp -r template day6
+cp -r template day7
+cp -r template day8
+cp -r template day9
+cp -r template day10
+cp -r template day11
+cp -r template day12
+cp -r template day13
+cp -r template day14
+cp -r template day15
+cp -r template day16
+cp -r template day17
+cp -r template day18
+cp -r template day19
+cp -r template day20
+cp -r template day21
+cp -r template day22
+cp -r template day23
+cp -r template day24
+cp -r template day25
