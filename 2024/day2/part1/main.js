@@ -26,25 +26,33 @@ function main(file) {
       .map(Number)
   );
 
-  const left = lines.map((line) => line[0]);
-  const right = lines.reduce((acc, line) => {
-    const num = line[1];
-    if (acc[num]) {
-      acc[num]++;
-    } else {
-      acc[num] = 1;
-    }
-    return acc;
-  }, {});
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const expectIncreasing = line[1] - line[0] > 0;
 
-  for (let i = 0; i < left.length; i++) {
-    const l = left[i];
-    result += l * (right[l] ?? 0);
+    let valid = true;
+    for (let j = 1; j < line.length; j++) {
+      const increasing = line[j] - line[j - 1] > 0;
+      if (increasing !== expectIncreasing) {
+        valid = false;
+        continue;
+      }
+
+      const diff = Math.abs(line[j] - line[j - 1]);
+      if (diff < 1 || diff > 3) {
+        valid = false;
+        continue;
+      }
+    }
+
+    if (valid) {
+      result++;
+    }
   }
 
   console.log(result);
 }
 
-main("part1example.txt");
-console.log("expected ???");
-// main("part1exercise.txt"); // ???
+main("example.txt");
+console.log("expected 2");
+main("exercise.txt"); // 624
