@@ -45,6 +45,6 @@ function main(file) {
   console.log(result);
 }
 
-main("part1example.txt");
+main("example.txt");
 console.log("expected 31");
-main("part1exercise.txt"); // 27267728
+main("exercise.txt"); // 27267728
