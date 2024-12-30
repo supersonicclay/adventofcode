@@ -20,70 +20,29 @@ const dirs = {
 };
 
 function checkSameDirection(line) {
-  const increasingIndexes = new Set();
-  const decreasingIndexes = new Set();
-  for (let i = 1; i < line.length; i++) {
-    const diff = line[i] - line[i - 1];
-    if (diff > 0) {
-      increasingIndexes.add(i);
-    } else {
-      decreasingIndexes.add(i);
-    }
-  }
-
-  // debug(
-  //   "directionFrequency",
-  //   line.join(","),
-  //   increasingIndexes,
-  //   decreasingIndexes
-  // );
-
-  if (increasingIndexes.size === 0 || decreasingIndexes.size === 0) {
-    // nothing invalid
-    return new Set();
-  }
-
-  if (increasingIndexes.size > decreasingIndexes.size) {
-    return decreasingIndexes;
-  } else {
-    return increasingIndexes;
-  }
+  const allIncreasing = line.every((num, i) => i === 0 || num > line[i - 1]);
+  const allDecreasing = line.every((num, i) => i === 0 || num < line[i - 1]);
+  return allIncreasing || allDecreasing;
 }
 
 function checkDistances(line) {
-  const invalidIndexes = new Set();
-  for (let i = 1; i < line.length; i++) {
-    const diff = Math.abs(line[i] - line[i - 1]);
-    if (diff < 1 || diff > 3) {
-      invalidIndexes.add(i);
-    }
-  }
-  return invalidIndexes;
+  return line.every((num, i) => i === 0 || Math.abs(num - line[i - 1]) <= 3);
 }
 
 function isValid(line, forgave) {
-  const invalidDirection = checkSameDirection(line);
-  const invalidDistance = checkDistances(line);
+  const validDirection = checkSameDirection(line);
+  const validDistance = checkDistances(line);
 
   debug(
     "invalid indexes",
     line.join(","),
     "---",
-    [...invalidDirection],
-    [...invalidDistance]
+    validDirection,
+    validDistance
   );
 
-  if (invalidDirection.size === 0 && invalidDistance.size === 0) {
-    return true;
-  }
-
-  let invalidIndexes = new Set();
-  for (let i = 0; i < line.length; i++) {
-    invalidIndexes.add(i);
-  }
-
-  if (invalidIndexes.size === 0) {
-    // debug("no forgiveness necessary", line, invalidDirection, invalidDistance);
+  if (validDirection && validDistance) {
+    // debug("valid", line, forgave, invalidDirection, invalidDistance);
     return true;
   }
 
@@ -92,12 +51,13 @@ function isValid(line, forgave) {
     return false;
   }
 
-  for (const invalidIndex of invalidIndexes) {
-    const newLine = line.filter((_, i) => i !== invalidIndex);
+  for (let i = 0; i < line.length; i++) {
+    // try taking out each one
+    const newLine = line.filter((_, i2) => i2 !== i);
     // debug("checking again", line, newLine, invalidDirection, invalidDistance);
-    const isValid2 = isValid(newLine, true);
-    if (isValid2) {
-      debug(`valid taking out ${invalidIndex}`);
+    const canForgive = isValid(newLine, true);
+    if (canForgive) {
+      debug(`valid taking out ${i}`);
       return true;
     }
   }
@@ -115,35 +75,12 @@ function main(file) {
       .filter(Boolean)
       .map(Number)
   );
-  // .slice(0, 10);
-  // .slice(4, 5);
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
     debug("-========-");
     const valid = isValid(line, false);
-
-    const stuffs = line.map((num, i) => {
-      const prev = i === 0 ? line[i] : line[i - 1];
-      const diff = num - prev;
-      return {
-        num,
-        diffInvalid: i !== 0 && (diff < -3 || diff === 0 || diff > 3),
-        dir: diff === 0 ? "." : diff > 0 ? "+" : "-",
-      };
-    });
-
-    debug(line.map((_, i) => i).join(""));
-    debug(stuffs.map(({ diffInvalid }) => (diffInvalid ? "#" : ".")).join(""));
-    debug(
-      stuffs
-        .map(({ dir }, i) =>
-          i === 0 || i === 1 ? "." : dir === stuffs[i - 1].dir ? "." : "#"
-        )
-        .join("")
-    );
-    debug(stuffs.map(({ dir }) => dir).join(""));
 
     debug("valid?", i, valid, line.join(","));
 
