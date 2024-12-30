@@ -20,71 +20,89 @@ const dirs = {
 };
 
 function checkSameDirection(line) {
-  let firstIncreasing = line[1] - line[0] > 0;
-  let secondIncreasing = line[2] - line[1] > 0;
-  let thirdIncreasing = line[3] - line[2] > 0;
-  if (
-    firstIncreasing !== secondIncreasing ||
-    secondIncreasing !== thirdIncreasing
-  ) {
-    if (firstIncreasing === thirdIncreasing) {
-      return 1;
+  const increasingIndexes = new Set();
+  const decreasingIndexes = new Set();
+  for (let i = 1; i < line.length; i++) {
+    const diff = line[i] - line[i - 1];
+    if (diff > 0) {
+      increasingIndexes.add(i);
+    } else {
+      decreasingIndexes.add(i);
     }
-    return 0;
   }
 
-  for (let i = 4; i < line.length; i++) {
-    let increasing = line[i] - line[i - 1] > 0;
-    if (increasing !== firstIncreasing) {
-      return i;
-    }
+  // debug(
+  //   "directionFrequency",
+  //   line.join(","),
+  //   increasingIndexes,
+  //   decreasingIndexes
+  // );
+
+  if (increasingIndexes.size === 0 || decreasingIndexes.size === 0) {
+    // nothing invalid
+    return new Set();
   }
-  return -1;
+
+  if (increasingIndexes.size > decreasingIndexes.size) {
+    return decreasingIndexes;
+  } else {
+    return increasingIndexes;
+  }
 }
 
 function checkDistances(line) {
-  const invalidIndexes = [];
+  const invalidIndexes = new Set();
   for (let i = 1; i < line.length; i++) {
     const diff = Math.abs(line[i] - line[i - 1]);
     if (diff < 1 || diff > 3) {
-      return i;
+      invalidIndexes.add(i);
     }
   }
-  return -1;
+  return invalidIndexes;
 }
 
 function isValid(line, forgave) {
-  debug("checking", line, forgave);
   const invalidDirection = checkSameDirection(line);
   const invalidDistance = checkDistances(line);
 
-  if (
-    invalidDirection !== -1 &&
-    invalidDistance !== -1 &&
-    invalidDirection !== invalidDistance
-  ) {
-    debug("different indexes", line, invalidDirection, invalidDistance);
-    return false;
+  debug(
+    "invalid indexes",
+    line.join(","),
+    "---",
+    [...invalidDirection],
+    [...invalidDistance]
+  );
+
+  if (invalidDirection.size === 0 && invalidDistance.size === 0) {
+    return true;
   }
 
-  if (invalidDirection === -1 && invalidDistance === -1) {
-    debug("no forgiveness necessary", line, invalidDirection, invalidDistance);
+  let invalidIndexes = new Set();
+  for (let i = 0; i < line.length; i++) {
+    invalidIndexes.add(i);
+  }
+
+  if (invalidIndexes.size === 0) {
+    // debug("no forgiveness necessary", line, invalidDirection, invalidDistance);
     return true;
   }
 
   if (forgave) {
-    debug("already forgave", line, invalidDirection, invalidDistance);
+    // debug("already forgave", line, invalidDirection, invalidDistance);
     return false;
   }
 
-  const indexToRemove =
-    invalidDirection !== -1 ? invalidDirection : invalidDistance;
+  for (const invalidIndex of invalidIndexes) {
+    const newLine = line.filter((_, i) => i !== invalidIndex);
+    // debug("checking again", line, newLine, invalidDirection, invalidDistance);
+    const isValid2 = isValid(newLine, true);
+    if (isValid2) {
+      debug(`valid taking out ${invalidIndex}`);
+      return true;
+    }
+  }
 
-  // remove the invalid index and save in new variable
-  const newLine = line.filter((_, i) => i !== indexToRemove);
-  debug("checking again", line, newLine, invalidDirection, invalidDistance);
-
-  return isValid(newLine, true);
+  return false;
 }
 
 function main(file) {
@@ -97,6 +115,8 @@ function main(file) {
       .filter(Boolean)
       .map(Number)
   );
+  // .slice(0, 10);
+  // .slice(4, 5);
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -104,14 +124,31 @@ function main(file) {
     debug("-========-");
     const valid = isValid(line, false);
 
-    debug(line, valid);
+    const stuffs = line.map((num, i) => {
+      const prev = i === 0 ? line[i] : line[i - 1];
+      const diff = num - prev;
+      return {
+        num,
+        diffInvalid: i !== 0 && (diff < -3 || diff === 0 || diff > 3),
+        dir: diff === 0 ? "." : diff > 0 ? "+" : "-",
+      };
+    });
+
+    debug(line.map((_, i) => i).join(""));
+    debug(stuffs.map(({ diffInvalid }) => (diffInvalid ? "#" : ".")).join(""));
+    debug(
+      stuffs
+        .map(({ dir }, i) =>
+          i === 0 || i === 1 ? "." : dir === stuffs[i - 1].dir ? "." : "#"
+        )
+        .join("")
+    );
+    debug(stuffs.map(({ dir }) => dir).join(""));
+
+    debug("valid?", i, valid, line.join(","));
 
     if (valid) {
       result++;
-    }
-
-    if (i === 10) {
-      debug = () => {};
     }
   }
 
@@ -120,4 +157,4 @@ function main(file) {
 
 main("example.txt");
 console.log("expected 4");
-main("exercise.txt"); // ?
+main("exercise.txt"); // 658
