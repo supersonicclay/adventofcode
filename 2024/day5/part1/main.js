@@ -22,29 +22,45 @@ const dirs = {
 function main(file) {
   let result = 0;
   const input = require("fs").readFileSync(file, "utf-8");
-  const lines = input.split("\n").map((line) =>
-    line
-      .split(" ")
-      .map((x) => x.trim())
-      .filter(Boolean)
-      .map(Number)
-  );
+  const [orderingRulesLines, updateLines] = input
+    .split("\n\n")
+    .map((chunk) => chunk.split("\n"));
 
-  const left = lines.map((line) => line[0]);
-  const right = lines.map((line) => line[1]);
+  const orderingRules = orderingRulesLines.reduce((map, line) => {
+    const [earlierPage, laterPage] = line.split("|").map(Number);
+    map.set(earlierPage, (map.get(earlierPage) ?? new Set()).add(laterPage));
+    return map;
+  }, new Map());
 
-  left.sort((a, b) => a - b);
-  right.sort((a, b) => a - b);
+  const updates = updateLines.map((line) => line.split(",").map(Number));
+  // debug(orderingRules);
+  // debug(updates);
 
-  for (let i = 0; i < left.length; i++) {
-    const l = left[i];
-    const r = right[i];
-    result += Math.abs(r - l);
+  for (const update of updates) {
+    // debug(update);
+
+    let valid = true;
+    let previous = update[0];
+    for (let i = 1; i < update.length; i++) {
+      const current = update[i];
+
+      // debug(previous, current, orderingRules.get(previous));
+      if (!orderingRules.get(previous)?.has(current)) {
+        valid = false;
+        break;
+      }
+      previous = current;
+    }
+
+    if (valid) {
+      // debug("valid", Math.floor(update.length / 2));
+      result += update[Math.floor(update.length / 2)];
+    }
   }
 
   console.log(result);
 }
 
 main("example.txt");
-console.log("expected ___");
-// main("exercise.txt"); // ???
+console.log("expected 143");
+main("exercise.txt"); // 5948
