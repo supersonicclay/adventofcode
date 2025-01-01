@@ -22,29 +22,19 @@ const dirs = {
 function main(file) {
   let result = 0;
   const input = require("fs").readFileSync(file, "utf-8");
-  const lines = input.split("\n").map((line) =>
-    line
-      .split(" ")
-      .map((x) => x.trim())
-      .filter(Boolean)
-      .map(Number)
-  );
 
-  const left = lines.map((line) => line[0]);
-  const right = lines.map((line) => line[1]);
+  const re = /mul\((\d{1,3})\,(\d{1,3})\)/g;
 
-  left.sort((a, b) => a - b);
-  right.sort((a, b) => a - b);
+  const numbers = [...input.matchAll(re)].map((m) => m.slice(1).map(Number));
 
-  for (let i = 0; i < left.length; i++) {
-    const l = left[i];
-    const r = right[i];
-    result += Math.abs(r - l);
+  for (let i = 0; i < numbers.length; i++) {
+    const [a, b] = numbers[i];
+    result += a * b;
   }
 
   console.log(result);
 }
 
 main("example.txt");
-console.log("expected ___");
-// main("exercise.txt"); // ???
+console.log("expected 161");
+main("exercise.txt"); // 183788984
