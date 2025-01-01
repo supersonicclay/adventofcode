@@ -17,34 +17,56 @@ const dirs = {
   R: ([r, c]) => [r, c + 1],
   D: ([r, c]) => [r + 1, c],
   L: ([r, c]) => [r, c - 1],
+  UR: ([r, c]) => [r - 1, c + 1],
+  DR: ([r, c]) => [r + 1, c + 1],
+  DL: ([r, c]) => [r + 1, c - 1],
+  UL: ([r, c]) => [r - 1, c - 1],
 };
+
+const XMAS = ["X", "M", "A", "S"];
+
+function look(grid, pos, dir, index) {
+  if (index >= XMAS.length) {
+    return true;
+  }
+
+  const [row, col] = pos;
+
+  if (row < 0 || row >= grid.length) {
+    return false;
+  }
+  if (col < 0 || col >= grid[row].length) {
+    return false;
+  }
+
+  if (grid[row][col] !== XMAS[index]) {
+    return false;
+  }
+
+  return look(grid, dir(pos), dir, index + 1);
+}
 
 function main(file) {
   let result = 0;
   const input = require("fs").readFileSync(file, "utf-8");
-  const lines = input.split("\n").map((line) =>
-    line
-      .split(" ")
-      .map((x) => x.trim())
-      .filter(Boolean)
-      .map(Number)
-  );
+  const grid = input.split("\n").map((line) => line.split(""));
 
-  const left = lines.map((line) => line[0]);
-  const right = lines.map((line) => line[1]);
+  // debug(grid);
 
-  left.sort((a, b) => a - b);
-  right.sort((a, b) => a - b);
-
-  for (let i = 0; i < left.length; i++) {
-    const l = left[i];
-    const r = right[i];
-    result += Math.abs(r - l);
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      for (const dir in dirs) {
+        if (look(grid, [r, c], dirs[dir], 0)) {
+          // debug("found", dir, r, c);
+          result++;
+        }
+      }
+    }
   }
 
   console.log(result);
 }
 
 main("example.txt");
-console.log("expected ___");
-// main("exercise.txt"); // ???
+console.log("expected 18");
+main("exercise.txt"); // 2358
