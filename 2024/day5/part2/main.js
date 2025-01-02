@@ -22,29 +22,41 @@ const dirs = {
 function main(file) {
   let result = 0;
   const input = require("fs").readFileSync(file, "utf-8");
-  const lines = input.split("\n").map((line) =>
-    line
-      .split(" ")
-      .map((x) => x.trim())
-      .filter(Boolean)
-      .map(Number)
-  );
+  const [orderingRulesLines, updateLines] = input
+    .split("\n\n")
+    .map((chunk) => chunk.split("\n"));
 
-  const left = lines.map((line) => line[0]);
-  const right = lines.map((line) => line[1]);
+  const orderingRules = orderingRulesLines.reduce((map, line) => {
+    const [earlierPage, laterPage] = line.split("|").map(Number);
+    map.set(earlierPage, (map.get(earlierPage) ?? new Set()).add(laterPage));
+    return map;
+  }, new Map());
+  const entries = Array.from(orderingRules.entries());
+  debug(entries.map(([page, set]) => [page, [...set]]));
 
-  left.sort((a, b) => a - b);
-  right.sort((a, b) => a - b);
+  const updates = updateLines.map((line) => line.split(",").map(Number));
 
-  for (let i = 0; i < left.length; i++) {
-    const l = left[i];
-    const r = right[i];
-    result += Math.abs(r - l);
+  for (const update of updates) {
+    debug("\n=======");
+    debug(update.join(","));
+
+    const sorted = [...update].sort((a, b) =>
+      orderingRules.get(a)?.has(b) ? -1 : 1
+    );
+    debug(sorted.join(","));
+
+    const corrected = sorted.some((entry, index) => update[index] !== entry);
+
+    if (corrected) {
+      debug("corrected");
+      result += sorted[Math.floor(sorted.length / 2)];
+    }
   }
 
   console.log(result);
 }
 
-main("example.txt");
-console.log("expected ___");
-// main("exercise.txt"); // ???
+debug = noop;
+// main("example.txt");
+// console.log("expected 123");
+main("exercise.txt"); // 7702 too high
