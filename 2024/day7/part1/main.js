@@ -19,32 +19,39 @@ const dirs = {
   L: ([r, c]) => [r, c - 1],
 };
 
+function reachesTarget(target, cumulative, values) {
+  if (values.length === 0) {
+    return cumulative === target;
+  }
+
+  return (
+    reachesTarget(target, cumulative + values[0], values.slice(1)) ||
+    reachesTarget(target, cumulative * values[0], values.slice(1))
+  );
+}
+
 function main(file) {
   let result = 0;
   const input = require("fs").readFileSync(file, "utf-8");
-  const lines = input.split("\n").map((line) =>
-    line
-      .split(" ")
-      .map((x) => x.trim())
-      .filter(Boolean)
-      .map(Number)
-  );
+  const equations = input.split("\n").map((line) => {
+    const [target, ...values] = line.split(" ").map((n) => parseInt(n));
 
-  const left = lines.map((line) => line[0]);
-  const right = lines.map((line) => line[1]);
+    return { target, values };
+  });
 
-  left.sort((a, b) => a - b);
-  right.sort((a, b) => a - b);
+  debug(equations);
 
-  for (let i = 0; i < left.length; i++) {
-    const l = left[i];
-    const r = right[i];
-    result += Math.abs(r - l);
+  for (const { target, values } of equations) {
+    if (reachesTarget(target, values[0], values.slice(1))) {
+      debug("works", target, values);
+      result += target;
+    }
   }
 
   console.log(result);
 }
 
+debug = noop;
 main("example.txt");
-console.log("expected ___");
-// main("exercise.txt"); // ???
+console.log("expected 3749");
+main("exercise.txt"); // 5030892084481
