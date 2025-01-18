@@ -19,32 +19,50 @@ const dirs = {
   L: ([r, c]) => [r, c - 1],
 };
 
+function walk(grid, pos, visited) {
+  const [r, c] = pos;
+  const height = grid[r][c];
+  if (visited.has(p2s(pos))) {
+    return 0;
+  }
+  visited.add(p2s(pos));
+  if (grid[r][c] === 9) {
+    return 1;
+  }
+
+  let trails = 0;
+  for (const dir of Object.values(dirs)) {
+    const [newR, newC] = dir(pos);
+    if (newR < 0 || newR >= grid.length || newC < 0 || newC >= grid[0].length) {
+      continue;
+    }
+    const newHeight = grid[newR][newC];
+    if (newHeight === grid[r][c] + 1) {
+      const subVisited = new Set([...visited]);
+      trails += walk(grid, [newR, newC], subVisited);
+    }
+  }
+  return trails;
+}
+
 function main(file) {
   let result = 0;
   const input = require("fs").readFileSync(file, "utf-8");
-  const lines = input.split("\n").map((line) =>
-    line
-      .split(" ")
-      .map((x) => x.trim())
-      .filter(Boolean)
-      .map(Number)
-  );
+  const grid = input.split("\n").map((line) => line.split("").map(Number));
 
-  const left = lines.map((line) => line[0]);
-  const right = lines.map((line) => line[1]);
-
-  left.sort((a, b) => a - b);
-  right.sort((a, b) => a - b);
-
-  for (let i = 0; i < left.length; i++) {
-    const l = left[i];
-    const r = right[i];
-    result += Math.abs(r - l);
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[0].length; c++) {
+      if (grid[r][c] === 0) {
+        const visited = new Set();
+        result += walk(grid, [r, c], visited);
+      }
+    }
   }
 
   console.log(result);
 }
 
+// debug = noop;
 main("example.txt");
-console.log("expected ___");
-// main("exercise.txt"); // ???
+console.log("expected 81");
+main("exercise.txt"); // 1186
