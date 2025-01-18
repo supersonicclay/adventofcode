@@ -19,32 +19,56 @@ const dirs = {
   L: ([r, c]) => [r, c - 1],
 };
 
-function main(file) {
+function blink(num, blinkIndex, count, cache) {
+  if (blinkIndex === 0) {
+    cache.set(num, cache.get(num) ?? new Map());
+    cache.get(num).set(blinkIndex, count);
+    return count;
+  }
+
+  const cached = cache.get(num)?.get(blinkIndex);
+  if (cached) {
+    return cached;
+  }
+
+  if (num === 0) {
+    return blink(1, blinkIndex - 1, count, cache);
+  } else {
+    const s = String(num);
+    if (s.length % 2 == 0) {
+      const n1 = Number(s.slice(0, s.length / 2));
+      const n2 = Number(s.slice(s.length / 2));
+      const result =
+        blink(n1, blinkIndex - 1, count, cache) +
+        blink(n2, blinkIndex - 1, count, cache);
+      cache.set(num, cache.get(num) ?? new Map());
+      cache.get(num).set(blinkIndex, result);
+      return result;
+    } else {
+      const result = blink(num * 2024, blinkIndex - 1, count, cache);
+      cache.set(num, cache.get(num) ?? new Map());
+      cache.get(num).set(blinkIndex, result);
+      return result;
+    }
+  }
+}
+
+function main(file, blinks) {
   let result = 0;
   const input = require("fs").readFileSync(file, "utf-8");
-  const lines = input.split("\n").map((line) =>
-    line
-      .split(" ")
-      .map((x) => x.trim())
-      .filter(Boolean)
-      .map(Number)
-  );
+  const nums = input.split(" ").map(Number);
 
-  const left = lines.map((line) => line[0]);
-  const right = lines.map((line) => line[1]);
-
-  left.sort((a, b) => a - b);
-  right.sort((a, b) => a - b);
-
-  for (let i = 0; i < left.length; i++) {
-    const l = left[i];
-    const r = right[i];
-    result += Math.abs(r - l);
+  const cache = new Map();
+  for (let i = 0; i < nums.length; i++) {
+    result += blink(nums[i], blinks, 1, cache);
   }
 
   console.log(result);
 }
 
-main("example.txt");
-console.log("expected ___");
-// main("exercise.txt"); // ???
+// debug = noop;
+main("example.txt", 25);
+console.log("expected -- 55312");
+main("example.txt", 75);
+console.log("expected -- 65601038650482");
+main("exercise.txt", 75); // 228449040027793
