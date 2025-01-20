@@ -19,32 +19,59 @@ const dirs = {
   L: ([r, c]) => [r, c - 1],
 };
 
+function calculatePlot(plants, pos, visited, borders) {
+  const [r, c] = pos;
+  const key = p2s(pos);
+  if (visited.has(key)) {
+    return borders;
+  }
+  visited.add(key);
+
+  const plantType = plants[r][c];
+  for (const [dir, move] of Object.entries(dirs)) {
+    const nextPos = move(pos);
+    const [nr, nc] = nextPos;
+    if (nr < 0 || nr >= plants.length || nc < 0 || nc >= plants[r].length) {
+      borders++;
+    } else {
+      const nextPlantType = plants[nr][nc];
+      if (nextPlantType === plantType) {
+        borders = calculatePlot(plants, nextPos, visited, borders);
+      } else {
+        borders++;
+      }
+    }
+  }
+
+  return borders;
+}
+
 function main(file) {
   let result = 0;
   const input = require("fs").readFileSync(file, "utf-8");
-  const lines = input.split("\n").map((line) =>
-    line
-      .split(" ")
-      .map((x) => x.trim())
-      .filter(Boolean)
-      .map(Number)
-  );
+  const plants = input.split("\n").map((line) => line.split(""));
+  const rows = plants.length;
+  const cols = plants[0].length;
+  debug(plants);
 
-  const left = lines.map((line) => line[0]);
-  const right = lines.map((line) => line[1]);
-
-  left.sort((a, b) => a - b);
-  right.sort((a, b) => a - b);
-
-  for (let i = 0; i < left.length; i++) {
-    const l = left[i];
-    const r = right[i];
-    result += Math.abs(r - l);
+  const visited = new Set();
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      let sizeBefore = visited.size;
+      const borders = calculatePlot(plants, [r, c], visited, 0);
+      const area = visited.size - sizeBefore;
+      result += borders * area;
+    }
   }
 
   console.log(result);
 }
 
+debug = noop;
 main("example.txt");
-console.log("expected ___");
-// main("exercise.txt"); // ???
+console.log("expected 140");
+main("example2.txt");
+console.log("expected 772");
+main("example3.txt");
+console.log("expected 1930");
+main("exercise.txt"); // 1375574
