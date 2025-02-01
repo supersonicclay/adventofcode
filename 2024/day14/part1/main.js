@@ -19,32 +19,66 @@ const dirs = {
   L: ([r, c]) => [r, c - 1],
 };
 
-function main(file) {
+function main(file, w, h, steps) {
   let result = 0;
   const input = require("fs").readFileSync(file, "utf-8");
-  const lines = input.split("\n").map((line) =>
-    line
+  const robots = input.split("\n").map((line) => {
+    const [p, v] = line
       .split(" ")
-      .map((x) => x.trim())
-      .filter(Boolean)
-      .map(Number)
-  );
+      .map((s) => s.split("=")[1].split(",").map(Number));
 
-  const left = lines.map((line) => line[0]);
-  const right = lines.map((line) => line[1]);
+    return { p, v };
+  });
 
-  left.sort((a, b) => a - b);
-  right.sort((a, b) => a - b);
+  for (let r = 0; r < robots.length; r++) {
+    const robot = robots[r];
 
-  for (let i = 0; i < left.length; i++) {
-    const l = left[i];
-    const r = right[i];
-    result += Math.abs(r - l);
+    robot.p = [
+      robot.p[0] + robot.v[0] * steps,
+      robot.p[1] + robot.v[1] * steps,
+    ];
+    robot.p[0] = ((robot.p[0] % w) + w) % w;
+    robot.p[1] = ((robot.p[1] % h) + h) % h;
   }
+  // debug(robots);
+
+  const posMap = new Map();
+  const quadMap = new Map();
+  for (const robot of robots) {
+    const pos = p2s(robot.p);
+    posMap.set(pos, (posMap.get(pos) ?? 0) + 1);
+
+    if ((w - 1) / robot.p[0] === 2 || (h - 1) / robot.p[1] === 2) {
+      debug("ignoring robot", robot);
+      continue;
+    }
+
+    const quad =
+      Math.floor(robot.p[0] / (w / 2)) + 2 * Math.floor(robot.p[1] / (h / 2));
+    quadMap.set(quad, (quadMap.get(quad) ?? 0) + 1);
+  }
+
+  result = mul(quadMap.values());
+
+  debug(quadMap);
+
+  // for (let r = 0; r < h; r++) {
+  //   for (let c = 0; c < w; c++) {
+  //     let found = posMap.get(p2s([c, r])) ?? 0;
+  //     process.stdout.write(found ? String(found) : ".");
+  //   }
+  //   process.stdout.write("\n");
+  // }
 
   console.log(result);
 }
 
-main("example.txt");
-console.log("expected ___");
-// main("exercise.txt"); // ???
+debug = noop;
+// main("example.txt", 11, 7, 1);
+// main("example.txt", 11, 7, 2);
+// main("example.txt", 11, 7, 3);
+// main("example.txt", 11, 7, 4);
+// main("example.txt", 11, 7, 5);
+main("example.txt", 11, 7, 100);
+console.log("expected 12");
+main("exercise.txt", 101, 103, 100); // 225648864
